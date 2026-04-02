@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Delusional Bubble</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #06060f;
+  --gold: #c9a84c;
+  --gold-light: #e8c97a;
+  --cream: #f0e8d5;
+  --dim: #3a3a55;
+  --muted: #5a5a7a;
+}
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--cream);
+  font-family: 'Jost', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Stars bg ── */
+#starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── Ambient ── */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(120, 80, 200, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 20% 90%, rgba(201,168,76,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 30% at 80% 60%, rgba(80,160,200,0.05) 0%, transparent 55%);
+}
+
+/* ── Layout ── */
+.page {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 800px;
+  padding: 3rem 1.5rem 6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  animation: fadeUp 0.9s ease 0.1s both;
+}
+
+.eyebrow {
+  font-size: 0.55rem;
+  letter-spacing: 0.4em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+}
+
+.header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  font-weight: 300;
+  line-height: 1.1;
+  color: var(--cream);
+}
+
+.header h1 em {
+  font-style: italic;
+  color: var(--gold-light);
+}
+
+.header-sub {
+  margin-top: 0.75rem;
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  line-height: 1.9;
+}
+
+/* ── Input area ── */
+.input-zone {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: fadeUp 0.9s ease 0.3s both;
+}
+
+.input-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.statement-input {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 3px;
+  padding: 0.9rem 1.2rem;
+  color: var(--cream);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  font-style: italic;
+  outline: none;
+  transition: border-color 0.3s, background 0.3s;
+}
+
+.statement-input::placeholder {
+  color: var(--dim);
+  font-style: italic;
+}
+
+.statement-input:focus {
+  border-color: rgba(201,168,76,0.4);
+  background: rgba(255,255,255,0.06);
+}
+
+.add-btn {
+  background: rgba(201,168,76,0.12);
+  border: 1px solid rgba(201,168,76,0.3);
+  border-radius: 3px;
+  color: var(--gold);
+  font-family: 'Jost', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 0.9rem 1.4rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.add-btn:hover {
+  background: rgba(201,168,76,0.22);
+  border-color: rgba(201,168,76,0.6);
+  color: var(--gold-light);
+}
+
+.hint {
+  font-size: 0.58rem;
+  color: var(--dim);
+  letter-spacing: 0.12em;
+  text-align: center;
+}
+
+/* ── THE PORTAL BUBBLE ── */
+.portal-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  animation: fadeUp 0.9s ease 0.5s both;
+}
+
+.portal-container {
+  position: relative;
+  width: min(520px, 90vw);
+  height: min(520px, 90vw);
+}
+
+/* Outer glow rings */
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(201,168,76,0.08);
+  animation: ring-pulse 6s ease-in-out infinite;
+}
+
+.ring-1 {
+  inset: -20px;
+  border-color: rgba(201,168,76,0.06);
+  animation-delay: 0s;
+}
+.ring-2 {
+  inset: -40px;
+  border-color: rgba(150,100,220,0.05);
+  animation-delay: 1s;
+}
+.ring-3 {
+  inset: -65px;
+  border-color: rgba(80,160,200,0.04);
+  animation-delay: 2s;
+}
+
+@keyframes ring-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.015); }
+}
+
+/* The bubble itself */
+.bubble {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: default;
+}
+
+/* Iridescent background */
+.bubble-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse 80% 80% at 30% 25%, rgba(180,140,255,0.25) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 60% at 70% 70%, rgba(80,180,220,0.2) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(20,10,40,0.9) 0%, rgba(10,5,25,0.95) 100%);
+  animation: bubble-breathe 7s ease-in-out infinite;
+}
+
+@keyframes bubble-breathe {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+}
+
+/* Bubble glass sheen */
+.bubble-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse 50% 30% at 35% 18%, rgba(255,255,255,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 20% 10% at 65% 75%, rgba(255,255,255,0.06) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Bubble border */
+.bubble-border {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.12);
+  box-shadow:
+    inset 0 0 60px rgba(150,100,255,0.08),
+    inset 0 0 120px rgba(80,160,200,0.05),
+    0 0 40px rgba(150,100,255,0.1),
+    0 0 80px rgba(201,168,76,0.06);
+  pointer-events: none;
+}
+
+/* Floating particles inside */
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: float-particle linear infinite;
+}
+
+@keyframes float-particle {
+  0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 0.6; }
+  100% { transform: translateY(-180px) translateX(var(--drift)) scale(0.3); opacity: 0; }
+}
+
+/* Statements inside the bubble */
+.bubble-statements {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15%;
+  gap: 0.6rem;
+  overflow: hidden;
+}
+
+.bubble-center-label {
+  font-size: 0.5rem;
+  letter-spacing: 0.35em;
+  color: rgba(201,168,76,0.4);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.empty-prompt {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  font-style: italic;
+  color: rgba(240,232,213,0.2);
+  text-align: center;
+  line-height: 1.7;
+  padding: 0 10%;
+}
+
+.bubble-statement {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(0.7rem, 2.5vw, 0.95rem);
+  font-style: italic;
+  color: rgba(240,232,213,0.9);
+  text-align: center;
+  line-height: 1.5;
+  animation: statement-appear 0.6s ease both;
+  text-shadow: 0 0 20px rgba(201,168,76,0.3);
+  cursor: pointer;
+  transition: color 0.2s;
+  position: relative;
+}
+
+.bubble-statement:hover {
+  color: rgba(255,100,100,0.7);
+}
+
+.bubble-statement:hover::after {
+  content: '✕';
+  font-style: normal;
+  font-size: 0.55rem;
+  margin-left: 0.4rem;
+  opacity: 0.5;
+}
+
+@keyframes statement-appear {
+  from { opacity: 0; transform: scale(0.85) translateY(8px); filter: blur(3px); }
+  to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+}
+
+/* Portal label */
+.portal-label {
+  font-size: 0.52rem;
+  letter-spacing: 0.35em;
+  color: rgba(201,168,76,0.35);
+  text-transform: uppercase;
+  text-align: center;
+  animation: breathe-text 5s ease-in-out infinite;
+}
+
+@keyframes breathe-text {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.7; }
+}
+
+/* ── Save button ── */
+.save-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  animation: fadeUp 0.9s ease 0.7s both;
+}
+
+.save-btn {
+  background: transparent;
+  border: 1px solid rgba(201,168,76,0.3);
+  border-radius: 3px;
+  color: var(--gold);
+  font-family: 'Jost', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  padding: 1rem 2.5rem;
+  cursor: pointer;
+  transition: all 0.35s;
+  position: relative;
+  overflow: hidden;
+}
+
+.save-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(201,168,76,0.08), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.save-btn:hover {
+  border-color: rgba(201,168,76,0.7);
+  color: var(--gold-light);
+  box-shadow: 0 0 20px rgba(201,168,76,0.1);
+}
+
+.save-btn:hover::before { opacity: 1; }
+
+.save-hint {
+  font-size: 0.56rem;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
+/* Clear button */
+.clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-family: 'Jost', sans-serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.3s;
+  padding: 0.5rem;
+}
+
+.clear-btn:hover { color: rgba(255,100,100,0.6); }
+
+/* ── Back link ── */
+.back-link {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 10;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.back-link:hover { color: var(--cream); }
+
+/* ── Save overlay (for screenshot) ── */
+#capture-target {
+  /* used by html2canvas */
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Saving flash */
+.saving-flash {
+  position: fixed;
+  inset: 0;
+  background: rgba(201,168,76,0.08);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.saving-flash.active { opacity: 1; }
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+<div class="ambient"></div>
+<div class="saving-flash" id="flash"></div>
+
+<a class="back-link" href="index.html">← Home</a>
+
+<div class="page">
+
+  <div class="header">
+    <p class="eyebrow">Reality Shifting Tool</p>
+    <h1>The Delusional<br><em>Bubble</em></h1>
+    <p class="header-sub">Type your statements. Watch them enter the portal.<br>Save and carry your new reality with you.</p>
+  </div>
+
+  <div class="input-zone">
+    <div class="input-row">
+      <input
+        class="statement-input"
+        id="statementInput"
+        type="text"
+        placeholder="I am already living my dream life..."
+        maxlength="80"
+      />
+      <button class="add-btn" onclick="addStatement()">Cast it →</button>
+    </div>
+    <p class="hint">Press Enter or click "Cast it" · Click a statement inside the bubble to remove it</p>
+  </div>
+
+  <div class="portal-wrap">
+
+    <div class="portal-container" id="capture-target">
+      <div class="ring ring-1"></div>
+      <div class="ring ring-2"></div>
+      <div class="ring ring-3"></div>
+
+      <div class="bubble" id="bubble">
+        <div class="bubble-bg"></div>
+
+        <!-- Floating particles -->
+        <div id="particles"></div>
+
+        <div class="bubble-statements" id="bubbleStatements">
+          <p class="bubble-center-label" id="centerLabel">Portal to your new reality</p>
+          <p class="empty-prompt" id="emptyPrompt">Your statements will live here,<br>held in the field of the already-true.</p>
+        </div>
+
+        <div class="bubble-sheen"></div>
+        <div class="bubble-border"></div>
+      </div>
+    </div>
+
+    <p class="portal-label">✦ step through · it is already done ✦</p>
+
+  </div>
+
+  <div class="save-zone">
+    <button class="save-btn" onclick="saveImage()">✦ Save My Bubble</button>
+    <p class="save-hint">Downloads as an image · Print it · Set it as your wallpaper · Carry it with you</p>
+    <button class="clear-btn" onclick="clearAll()">Clear all statements</button>
+  </div>
+
+</div>
+
+<script>
+// ── Statements ──────────────────────────────────────────────────
+let statements = JSON.parse(localStorage.getItem('bubble-statements') || '[]');
+
+function renderStatements() {
+  const container = document.getElementById('bubbleStatements');
+  const emptyPrompt = document.getElementById('emptyPrompt');
+  const centerLabel = document.getElementById('centerLabel');
+
+  // Clear existing statements (keep label and empty prompt)
+  container.querySelectorAll('.bubble-statement').forEach(el => el.remove());
+
+  if (statements.length === 0) {
+    emptyPrompt.style.display = '';
+    centerLabel.style.display = '';
+  } else {
+    emptyPrompt.style.display = 'none';
+    centerLabel.style.display = statements.length <= 2 ? '' : 'none';
+    statements.forEach((s, i) => {
+      const el = document.createElement('p');
+      el.className = 'bubble-statement';
+      el.textContent = s;
+      el.title = 'Click to remove';
+      el.onclick = () => removeStatement(i);
+      container.appendChild(el);
+    });
+  }
+
+  localStorage.setItem('bubble-statements', JSON.stringify(statements));
+}
+
+function addStatement() {
+  const input = document.getElementById('statementInput');
+  const text = input.value.trim();
+  if (!text) return;
+  if (statements.length >= 10) {
+    input.placeholder = 'Bubble is full — remove one first';
+    return;
+  }
+  statements.push(text);
+  input.value = '';
+  input.placeholder = 'Add another truth...';
+  renderStatements();
+  spawnParticleBurst();
+}
+
+function removeStatement(i) {
+  statements.splice(i, 1);
+  renderStatements();
+}
+
+function clearAll() {
+  if (statements.length === 0) return;
+  statements = [];
+  renderStatements();
+  document.getElementById('statementInput').placeholder = 'I am already living my dream life...';
+}
+
+// Enter key
+document.getElementById('statementInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addStatement();
+});
+
+// ── Particles ───────────────────────────────────────────────────
+const particleColors = [
+  'rgba(201,168,76,',
+  'rgba(180,140,255,',
+  'rgba(80,180,220,',
+  'rgba(240,200,150,',
+  'rgba(150,220,200,',
+];
+
+function createParticle() {
+  const container = document.getElementById('particles');
+  const bubble = document.getElementById('bubble');
+  const size = bubble.offsetWidth;
+
+  const p = document.createElement('div');
+  p.className = 'particle';
+
+  const pSize = 1 + Math.random() * 3;
+  const color = particleColors[Math.floor(Math.random() * particleColors.length)];
+  const x = 20 + Math.random() * (size - 40);
+  const y = 30 + Math.random() * (size * 0.6);
+  const drift = (Math.random() - 0.5) * 60;
+  const duration = 4 + Math.random() * 6;
+  const delay = Math.random() * 8;
+
+  p.style.cssText = `
+    width: ${pSize}px;
+    height: ${pSize}px;
+    left: ${x}px;
+    top: ${y}px;
+    background: ${color}${0.5 + Math.random() * 0.5});
+    --drift: ${drift}px;
+    animation-duration: ${duration}s;
+    animation-delay: ${delay}s;
+    box-shadow: 0 0 ${pSize * 2}px ${color}0.8);
+  `;
+
+  container.appendChild(p);
+  setTimeout(() => p.remove(), (duration + delay) * 1000);
+}
+
+function spawnParticleBurst() {
+  for (let i = 0; i < 8; i++) {
+    setTimeout(createParticle, i * 80);
+  }
+}
+
+// Continuous ambient particles
+function ambientParticles() {
+  if (Math.random() < 0.4) createParticle();
+  setTimeout(ambientParticles, 600 + Math.random() * 800);
+}
+
+// ── Stars ───────────────────────────────────────────────────────
+const sc = document.getElementById('starfield');
+const sx = sc.getContext('2d');
+let stars = [];
+
+function initStars() {
+  sc.width = window.innerWidth;
+  sc.height = window.innerHeight;
+  stars = Array.from({ length: 140 }, () => ({
+    x: Math.random() * sc.width,
+    y: Math.random() * sc.height,
+    r: Math.random() * 1.3,
+    a: Math.random() * Math.PI * 2,
+    spd: 0.003 + Math.random() * 0.005
+  }));
+}
+
+function drawStars() {
+  sx.clearRect(0, 0, sc.width, sc.height);
+  stars.forEach(s => {
+    s.a += s.spd;
+    const alpha = (Math.sin(s.a) + 1) / 2 * 0.5 + 0.05;
+    sx.beginPath();
+    sx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    sx.fillStyle = `rgba(210,220,255,${alpha})`;
+    sx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+
+window.addEventListener('resize', initStars);
+initStars();
+drawStars();
+
+// ── Save as image ───────────────────────────────────────────────
+async function saveImage() {
+  const btn = document.querySelector('.save-btn');
+  const flash = document.getElementById('flash');
+
+  btn.textContent = '✦ Capturing...';
+  btn.style.opacity = '0.6';
+
+  // Flash effect
+  flash.classList.add('active');
+  setTimeout(() => flash.classList.remove('active'), 300);
+
+  try {
+    const target = document.getElementById('capture-target');
+
+    const canvas = await html2canvas(target, {
+      backgroundColor: '#06060f',
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      width: target.offsetWidth + 140,
+      height: target.offsetHeight + 140,
+      x: -70,
+      y: -70,
+    });
+
+    // Add a dark background with some padding
+    const final = document.createElement('canvas');
+    const pad = 60;
+    final.width = canvas.width + pad * 2;
+    final.height = canvas.height + pad * 2;
+    const ctx = final.getContext('2d');
+
+    // Background
+    const grd = ctx.createRadialGradient(
+      final.width/2, final.height/2, 0,
+      final.width/2, final.height/2, final.width * 0.6
+    );
+    grd.addColorStop(0, '#0d0a1a');
+    grd.addColorStop(1, '#06060f');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, final.width, final.height);
+
+    // Draw bubble capture
+    ctx.drawImage(canvas, pad, pad);
+
+    // Footer text
+    ctx.fillStyle = 'rgba(201,168,76,0.35)';
+    ctx.font = '500 22px Jost, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.letterSpacing = '6px';
+    ctx.fillText('✦ IT IS ALREADY DONE ✦', final.width / 2, final.height - 28);
+
+    // Download
+    const link = document.createElement('a');
+    link.download = 'my-delusional-bubble.png';
+    link.href = final.toDataURL('image/png');
+    link.click();
+
+    btn.textContent = '✦ Saved! Check your downloads';
+    setTimeout(() => { btn.textContent = '✦ Save My Bubble'; btn.style.opacity = '1'; }, 3000);
+
+  } catch (err) {
+    btn.textContent = '✦ Save My Bubble';
+    btn.style.opacity = '1';
+    console.error(err);
+  }
+}
+
+// ── Init ────────────────────────────────────────────────────────
+renderStatements();
+ambientParticles();
+</script>
+</body>
+</html>
